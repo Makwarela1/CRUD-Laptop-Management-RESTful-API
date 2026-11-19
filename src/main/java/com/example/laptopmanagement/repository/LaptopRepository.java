@@ -13,6 +13,9 @@ public interface LaptopRepository extends JpaRepository<Laptop, Long> {
 
     String findByLocation (String location);
 
+
+    Boolean existsBySerialNumber (String serialNumber);
+
     List<Laptop> findByPurchaseDate (LocalDate purchaseDate);
 
     List<Laptop> findByPurchasePrice (BigDecimal purchasePrice);
