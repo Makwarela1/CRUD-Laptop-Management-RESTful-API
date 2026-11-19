@@ -52,33 +52,14 @@ public class LaptopService {
         // READ ALL
         @Transactional(readOnly = true)
         public List <LaptopResponseDTO> getAllLaptops () {
-            return laptopRepository.findAll().stream().map( laptop -> new LaptopResponseDTO(
-                    laptop.getId(),
-                    laptop.getBrand(),
-                    laptop.getModel(),
-                    laptop.getSerialNumber(),
-                    laptop.getLocation(),
-                    laptop.getPurchaseDate(),
-                    laptop.getPurchasePrice(),
-                    laptop.getStatus()
-            )).toList();
-
+            return laptopRepository.findAll().stream().map(this::mapToResponse).toList();
         }
 
         // READ ONE
     @Transactional (readOnly = true)
     public LaptopResponseDTO getById (Long id){
         Laptop laptop = findLaptopOrThrowId(id);
-        return new LaptopResponseDTO(
-                laptop.getId(),
-                laptop.getBrand(),
-                laptop.getModel(),
-                laptop.getSerialNumber(),
-                laptop.getLocation(),
-                laptop.getPurchaseDate(),
-                laptop.getPurchasePrice(),
-                laptop.getStatus()
-        );
+        return mapToResponse(laptop);
 
     }
 
@@ -88,6 +69,51 @@ public class LaptopService {
 
     //UPDATE LAPTOP RECORD
 
+    public LaptopResponseDTO updateLaptop (Long id, LaptopRequestDTO requestDTO) {
+        Laptop laptop = findLaptopOrThrowId(id);
+        boolean serialNumberUsedByAnotherLaptop = laptopRepository.existsBySerialNumber(requestDTO.serialNumber());
+
+        if (serialNumberUsedByAnotherLaptop) {
+            throw new DuplicateResourceException("Another laptop with that serial number already exists");
+        }
+
+        laptop.setBrand(requestDTO.brand());
+        laptop.setModel(requestDTO.model());
+        laptop.setSerialNumber(requestDTO.serialNumber());
+        laptop.setLocation(requestDTO.location());
+        laptop.setPurchaseDate(requestDTO.purchaseDate());
+        laptop.setPurchasePrice(requestDTO.purchasePrice());
+        laptop.setStatus(requestDTO.status());
+
+        Laptop updateLaptop = laptopRepository.save(laptop);
+
+        return mapToResponse(updateLaptop);
+
     }
+
+        // DELETE LAPTOP RECORD
+        @Transactional
+                public void  deleteLaptop (Long id){
+            Laptop laptop = findLaptopOrThrowId(id);
+            laptopRepository.delete(laptop);
+
+        }
+
+        private LaptopResponseDTO mapToResponse(Laptop laptop){
+        return new LaptopResponseDTO(
+                laptop.getId(),
+                laptop.getBrand(),
+                laptop.getModel(),
+                laptop.getSerialNumber(),
+                laptop.getLocation(),
+                laptop.getPurchaseDate(),
+                laptop.getPurchasePrice(),
+                laptop.getStatus()
+
+        );
+        }
+    }
+
+
 
 
